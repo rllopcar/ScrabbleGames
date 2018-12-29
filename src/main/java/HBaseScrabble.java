@@ -1,6 +1,10 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -11,6 +15,7 @@ import org.apache.hadoop.fs.Path;
 //import org.apache.hadoop.mapreduce.;
 
 
+import javax.crypto.KeyGenerator;
 import java.io.*;
 //import java.nio.file.Path;
 import java.util.ArrayList;
@@ -139,6 +144,32 @@ public class HBaseScrabble {
 
     public List<String> query1(String tourneyid, String winnername) throws IOException {
         //TO IMPLEMENT
+        //HConnection conn = HConnectionManager.createConnection(config);
+        //HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
+        HTable table = new HTable(config,Bytes.toBytes("ScrabbleGames"));
+
+        Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(Integer.parseInt(tourneyid)));
+        Filter fWinnername = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(winnername));
+        FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+        filterList.addFilter(fTourneyid);
+        filterList.addFilter(fWinnername);
+        Scan scan = new Scan();
+        scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
+        scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
+        scan.setFilter(filterList);
+        ResultScanner rs = table.getScanner(scan);
+        for (Result r = rs.next(); r !=null; r = rs.next()) {
+            byte[] value = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
+            String valueStr = new String(value);
+            System.out.println("#######################");
+            System.out.println("scan result is -->"+valueStr);
+        }
+        table.close();
+      // System.out.println(Bytes.toString(rs));
+        //for (KeyValue kv: rs.raw()){
+        //    System.out.println("#######################");
+        //    System.out.println(new String(kv.getValue()));
+        //}
         System.exit(-1);
         return null;
 
