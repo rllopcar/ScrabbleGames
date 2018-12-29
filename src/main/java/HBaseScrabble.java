@@ -144,9 +144,9 @@ public class HBaseScrabble {
 
     public List<String> query1(String tourneyid, String winnername) throws IOException {
         //TO IMPLEMENT
-        //HConnection conn = HConnectionManager.createConnection(config);
-        //HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
-        HTable table = new HTable(config,Bytes.toBytes("ScrabbleGames"));
+        HConnection conn = HConnectionManager.createConnection(config);
+        HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
+        //HTable table = new HTable(config,Bytes.toBytes("ScrabbleGames"));
 
         Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(Integer.parseInt(tourneyid)));
         Filter fWinnername = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(winnername));
@@ -154,8 +154,8 @@ public class HBaseScrabble {
         filterList.addFilter(fTourneyid);
         filterList.addFilter(fWinnername);
         Scan scan = new Scan();
-        scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
-        scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
+        //scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
+        //scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
         scan.setFilter(filterList);
         ResultScanner rs = table.getScanner(scan);
         for (Result r = rs.next(); r !=null; r = rs.next()) {
