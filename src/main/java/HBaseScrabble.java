@@ -62,7 +62,8 @@ public class HBaseScrabble {
             scanner = new Scanner((new File(folder+"/scrabble_games.csv")));
             scanner.useDelimiter(COMMA_DELIMITER);
             scanner.nextLine();
-            while (scanner.hasNext()){
+            //while (scanner.hasNext()){
+            while (n<10001){
                 String nextLine = scanner.nextLine();
                 String[] game = nextLine.split(COMMA_DELIMITER);
                 int gameid = Integer.parseInt(game[0]);
