@@ -67,27 +67,26 @@ public class HBaseScrabble {
             scanner = new Scanner((new File(folder+"/scrabble_games.csv")));
             scanner.useDelimiter(COMMA_DELIMITER);
             scanner.nextLine();
-            //while (scanner.hasNext()){
-            while (n<10001){
+            while (scanner.hasNext()){
                 String nextLine = scanner.nextLine();
                 String[] game = nextLine.split(COMMA_DELIMITER);
-                int gameid = Integer.parseInt(game[0]);
-                int tourneyid = Integer.parseInt(game[1]);
+                String gameid = game[0];
+                String tourneyid = game[1];
                 Boolean tie = Boolean.parseBoolean(game[2]);
-                int winnerid = Integer.parseInt(game[3]);
+                String winnerid = game[3];
                 String winnername = game[4];
-                int winnerscore = Integer.parseInt(game[5]);
-                int winneroldrating = Integer.parseInt(game[6]);
-                int winnernewrating = Integer.parseInt(game[7]);
-                int winnerpos = Integer.parseInt(game[8]);
-                int loserid = Integer.parseInt(game[9]);
+                String winnerscore = game[5];
+                String winneroldrating = game[6];
+                String winnernewrating = game[7];
+                String winnerpos = game[8];
+                String loserid = game[9];
                 String losername = game[10];
-                int loserscore = Integer.parseInt(game[11]);
-                int loseroldrating = Integer.parseInt(game[12]);
-                int losernewrating = Integer.parseInt(game[13]);
-                int loserpos = Integer.parseInt(game[14]);
-                int round = Integer.parseInt(game[15]);
-                int division = Integer.parseInt(game[16]);
+                String loserscore = game[11];
+                String loseroldrating = game[12];
+                String losernewrating = game[13];
+                String loserpos = game[14];
+                String round = game[15];
+                String division = game[16];
                 String date = game[17];
                 Boolean lexicon = Boolean.parseBoolean(game[18]);
 
@@ -102,6 +101,7 @@ public class HBaseScrabble {
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("winnernewrating"),Bytes.toBytes(winnernewrating));
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("winnerpos"),Bytes.toBytes(winnerpos));
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("loserid"),Bytes.toBytes(loserid));
+                p.add(Bytes.toBytes("game"),Bytes.toBytes("losername"),Bytes.toBytes(losername));
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("loserscore"),Bytes.toBytes(loserscore));
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("loseroldrating"),Bytes.toBytes(loseroldrating));
                 p.add(Bytes.toBytes("game"),Bytes.toBytes("losernewrating"),Bytes.toBytes(losernewrating));
@@ -146,32 +146,21 @@ public class HBaseScrabble {
         //TO IMPLEMENT
         HConnection conn = HConnectionManager.createConnection(config);
         HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
-        //HTable table = new HTable(config,Bytes.toBytes("ScrabbleGames"));
-
-        Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(Integer.parseInt(tourneyid)));
+        Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(tourneyid));
         Filter fWinnername = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(winnername));
         FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
         filterList.addFilter(fTourneyid);
         filterList.addFilter(fWinnername);
         Scan scan = new Scan();
-        //scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
-        //scan.addColumn(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
         scan.setFilter(filterList);
         ResultScanner rs = table.getScanner(scan);
+        ArrayList<String> query1 = new ArrayList<>();
         for (Result r = rs.next(); r !=null; r = rs.next()) {
-            byte[] value = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
+            byte[] value = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
             String valueStr = new String(value);
-            System.out.println("#######################");
-            System.out.println("scan result is -->"+valueStr);
+            query1.add(valueStr);
         }
-        table.close();
-      // System.out.println(Bytes.toString(rs));
-        //for (KeyValue kv: rs.raw()){
-        //    System.out.println("#######################");
-        //    System.out.println(new String(kv.getValue()));
-        //}
-        System.exit(-1);
-        return null;
+        return query1;
 
     }
 
