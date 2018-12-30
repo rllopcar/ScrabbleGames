@@ -18,10 +18,7 @@ import org.apache.hadoop.fs.Path;
 import javax.crypto.KeyGenerator;
 import java.io.*;
 //import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import static org.apache.hadoop.hbase.util.Bytes.toBytes;
 
@@ -168,6 +165,12 @@ public class HBaseScrabble {
 
     public List<String> query2(String firsttourneyid, String lasttourneyid) throws IOException {
         //TO IMPLEMENT
+
+        if (Integer.parseInt(firsttourneyid) > Integer.parseInt(lasttourneyid)) {
+            String aux_1 = firsttourneyid;
+            firsttourneyid = lasttourneyid;
+            lasttourneyid = aux_1;
+        }
         HConnection conn = HConnectionManager.createConnection(config);
         HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
         Filter first = new SingleColumnValueFilter(toBytes("game"), toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, toBytes(firsttourneyid));
@@ -197,48 +200,52 @@ public class HBaseScrabble {
             rk_2.add(aux_key_2);
         }
 
-        String first_key = rk_1.get(0);
-        String last_key = rk_2.get(rk_2.size()-1);
-        Get g = new Get(toBytes(first_key));
-        Result result = table.get(g);
-        byte[] value = result.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
-        String name = Bytes.toString(value);
-        System.out.println("EL nombre es --> "+name);
-
-
-        Get gg = new Get(toBytes(last_key));
-        Result resultt = table.get(gg);
-        byte[] valuee = resultt.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnername"));
-        String namee = Bytes.toString(valuee);
-        System.out.println("EL nombre es --> "+namee);
-
-        Scan scan = new Scan(Bytes.toBytes(first_key),Bytes.toBytes(last_key));
-        ResultScanner scanner = table.getScanner(scan);
-
-        for (Result r = scanner.next(); r !=null; r = scanner.next()) {
-
-            // byte[] value_1 = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnerid"));
-            //byte[] value_2 = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
-
-            //String winnerId = new String(value_1);
-            //String loserId = new String(value_2);
-
-            //aux_1.add(winnerId);
-            //aux_1.add(loserId);
-            //System.out.println("############");
-            //System.out.println("WINNER ID IS --> "+winnerId);
-            //System.out.println("LOSER ID IS ---> "+loserId);
+        String first_key = "";
+        String last_key = "";
+        if (firsttourneyid == lasttourneyid) {
+            byte[] addKey = Bytes.toBytes(rk_1.size()+1);
+            String addkey_2 = new String(addKey);
+            rk_1.add(addkey_2);
+            first_key = rk_1.get(0);
+            last_key = rk_1.get(rk_1.size()-1);
+        } else {
+            byte[] addKey = Bytes.toBytes(rk_2.size()+rk_1.size());
+            String addkey_2 = new String(addKey);
+            rk_2.add(addkey_2);
+            first_key = rk_1.get(0);
+            last_key = rk_2.get(rk_2.size()-1);
         }
 
 
+        Scan scan = new Scan(Bytes.toBytes(first_key),Bytes.toBytes(last_key));
+        ResultScanner scanner = table.getScanner(scan);
+        ArrayList<String> ids = new ArrayList<>();
+        Set<String> query2_aux = new HashSet<>();
+        Set<String> set = new HashSet<>();
+        for (Result r = scanner.next(); r !=null; r = scanner.next()) {
 
+            byte[] winner_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnerid"));
+            String winnerId = new String(winner_aux);
+            byte[] loser_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
+            String loserId = new String(loser_aux);
 
-        //for(int i=0; i<aux_1.size(); i++ ) {
-        //    System.out.println("########"+aux_1.get(i));
+            ids.add(winnerId);
+            ids.add(loserId);
+        }
+
+        for (String i: ids) {
+            if(set.add(i) == false) {
+                query2_aux.add(i);
+            }
+        }
+
+        //for (String i: query2_aux){
+          //  System.out.println("EL id es -->" + i);
         //}
 
-        System.exit(-1);
-        return null;
+        ArrayList<String> query2 = new ArrayList<>(query2_aux);
+
+        return query2;
     }
 
     public List<String> query3(String tourneyid) throws IOException {
