@@ -1,10 +1,7 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.filter.FilterList;
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
+import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -21,6 +18,7 @@ import java.io.*;
 import java.util.*;
 
 import static org.apache.hadoop.hbase.util.Bytes.toBytes;
+import static org.apache.hadoop.hbase.util.Writables.getBytes;
 
 
 public class HBaseScrabble {
@@ -66,7 +64,8 @@ public class HBaseScrabble {
             scanner = new Scanner((new File(folder+"/scrabble_games.csv")));
             scanner.useDelimiter(COMMA_DELIMITER);
             scanner.nextLine();
-            while (scanner.hasNext()){
+            //while (scanner.hasNext()){
+            while (n<1000) {
                 String nextLine = scanner.nextLine();
                 String[] game = nextLine.split(COMMA_DELIMITER);
                 String gameid = game[0];
@@ -89,7 +88,7 @@ public class HBaseScrabble {
                 String date = game[17];
                 Boolean lexicon = Boolean.parseBoolean(game[18]);
 
-                Put p = new Put(toBytes(n));
+                Put p = new Put(toBytes(tourneyid+winnername));
                 p.add(toBytes("game"), toBytes("gameid"), toBytes(gameid));
                 p.add(toBytes("game"), toBytes("tourneyid"), toBytes(tourneyid));
                 p.add(toBytes("game"), toBytes("tie"), toBytes(tie));
@@ -173,57 +172,17 @@ public class HBaseScrabble {
         }
         HConnection conn = HConnectionManager.createConnection(config);
         HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
-        Filter first = new SingleColumnValueFilter(toBytes("game"), toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, toBytes(firsttourneyid));
-        Filter last = new SingleColumnValueFilter(toBytes("game"), toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, toBytes(lasttourneyid));
 
-        Scan scan_1 = new Scan();
-        Scan scan_2 = new Scan();
+        byte[] first_key = (firsttourneyid).getBytes();
 
-        scan_1.setFilter(first);
-        scan_2.setFilter(last);
+        byte[] last_key = (lasttourneyid+"z").getBytes();
 
-        ResultScanner rs_1 = table.getScanner(scan_1);
-        ResultScanner rs_2 = table.getScanner(scan_2);
-
-        ArrayList<String> rk_1 = new ArrayList<>();
-        ArrayList<String> rk_2 = new ArrayList<>();
-
-        for (Result r = rs_1.next(); r !=null; r = rs_1.next()) {
-            byte[] aux_key = r.getRow();
-            String aux_key_2 = new String(aux_key);
-            rk_1.add(aux_key_2);
-        }
-
-        for (Result r = rs_2.next(); r !=null; r = rs_2.next()) {
-            byte[] aux_key = r.getRow();
-            String aux_key_2 = new String(aux_key);
-            rk_2.add(aux_key_2);
-        }
-
-        String first_key = "";
-        String last_key = "";
-        if (firsttourneyid == lasttourneyid) {
-            byte[] addKey = Bytes.toBytes(rk_1.size()+1);
-            String addkey_2 = new String(addKey);
-            rk_1.add(addkey_2);
-            first_key = rk_1.get(0);
-            last_key = rk_1.get(rk_1.size()-1);
-        } else {
-            byte[] addKey = Bytes.toBytes(rk_2.size()+rk_1.size());
-            String addkey_2 = new String(addKey);
-            rk_2.add(addkey_2);
-            first_key = rk_1.get(0);
-            last_key = rk_2.get(rk_2.size()-1);
-        }
-
-
-        Scan scan = new Scan(Bytes.toBytes(first_key),Bytes.toBytes(last_key));
+        Scan scan = new Scan(first_key,last_key);
         ResultScanner scanner = table.getScanner(scan);
         ArrayList<String> ids = new ArrayList<>();
         Set<String> query2_aux = new HashSet<>();
         Set<String> set = new HashSet<>();
         for (Result r = scanner.next(); r !=null; r = scanner.next()) {
-
             byte[] winner_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnerid"));
             String winnerId = new String(winner_aux);
             byte[] loser_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
@@ -239,13 +198,9 @@ public class HBaseScrabble {
             }
         }
 
-        //for (String i: query2_aux){
-          //  System.out.println("EL id es -->" + i);
-        //}
-
         ArrayList<String> query2 = new ArrayList<>(query2_aux);
-
         return query2;
+
     }
 
     public List<String> query3(String tourneyid) throws IOException {
