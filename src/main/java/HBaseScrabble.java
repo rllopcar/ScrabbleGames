@@ -179,21 +179,29 @@ public class HBaseScrabble {
 
         byte[] first_key = (firsttourneyid).getBytes();
 
-        byte[] last_key = (lasttourneyid+".").getBytes();
+        byte[] last_key = (lasttourneyid+"z").getBytes();
 
         Scan scan = new Scan(first_key,last_key);
         ResultScanner scanner = table.getScanner(scan);
         ArrayList<String> ids = new ArrayList<>();
         Set<String> query2_aux = new HashSet<>();
         Set<String> set = new HashSet<>();
+        int n = 0;
         for (Result r = scanner.next(); r !=null; r = scanner.next()) {
             byte[] winner_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnerid"));
             String winnerId = new String(winner_aux);
             byte[] loser_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
             String loserId = new String(loser_aux);
+            byte[] tourneyid_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
+            String tourneyid = new String(tourneyid_aux);
 
-            ids.add(winnerId);
-            ids.add(loserId);
+            if (Integer.parseInt(firsttourneyid)<=Integer.parseInt(tourneyid) && (Integer.parseInt(lasttourneyid)>=Integer.parseInt(tourneyid))) {
+                ids.add(winnerId);
+                ids.add(loserId);
+                n++;
+                System.out.println("####### --> "+n);
+            }
+
         }
 
         for (String i: ids) {
