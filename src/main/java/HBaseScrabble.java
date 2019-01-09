@@ -180,7 +180,8 @@ public class HBaseScrabble {
 
         byte[] first_key = (firsttourneyid).getBytes();
 
-        byte[] last_key = (lasttourneyid+"z").getBytes();
+        //byte[] last_key = (lasttourneyid+"z").getBytes();
+        byte[] last_key = (lasttourneyid+".").getBytes();
 
         Scan scan = new Scan(first_key,last_key);
         ResultScanner scanner = table.getScanner(scan);
