@@ -9,12 +9,10 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 // New Imports
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.fs.Path;
-//import org.apache.hadoop.mapreduce.;
 
 
 import javax.crypto.KeyGenerator;
 import java.io.*;
-//import java.nio.file.Path;
 import java.util.*;
 
 import static org.apache.hadoop.hbase.util.Writables.getBytes;
@@ -24,6 +22,8 @@ public class HBaseScrabble {
     private Configuration config;
     private HBaseAdmin hBaseAdmin;
     private static final String COMMA_DELIMITER = ",";
+    private static final byte[] cfGame = Bytes.toBytes("game") ;
+    private static final byte[] cfUser = Bytes.toBytes("user");
     /**
      * The Constructor. Establishes the connection with HBase.
      * @param zkHost
@@ -42,12 +42,16 @@ public class HBaseScrabble {
     public void createTable() throws IOException {
         //Instantianting table descriptor class
         byte[] TABLE = Bytes.toBytes("ScrabbleGames");
-        byte[] CF = Bytes.toBytes("game");
+
         HTableDescriptor table = new HTableDescriptor(TableName.valueOf(TABLE));
-        HColumnDescriptor family = new HColumnDescriptor(CF);
-        family.setMaxVersions(10);
+        HColumnDescriptor hcGame = new HColumnDescriptor(cfGame);
+        HColumnDescriptor hcUser = new HColumnDescriptor(cfUser);
+
+        hcGame.setMaxVersions(10);
+        hcUser.setMaxVersions(10);
         //adding coloumn family to HTable
-        table.addFamily(family);
+        table.addFamily(hcGame);
+        table.addFamily(hcUser);
         hBaseAdmin.createTable(table);
 
         System.exit(-1);
@@ -89,28 +93,26 @@ public class HBaseScrabble {
 
                 String n_aux = String.valueOf(n);
 
-                //Put p = new Put(Bytes.toBytes(n));
-                //FUNCIONA 1 y 2 Put p = new Put(Bytes.toBytes(tourneyid+winnername+n));
                 Put p = new Put(Bytes.toBytes(tourneyid+n));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("gameid"), Bytes.toBytes(gameid));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), Bytes.toBytes(tourneyid));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("tie"), Bytes.toBytes(tie));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winnerid"), Bytes.toBytes(winnerid));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winnername"), Bytes.toBytes(winnername));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winnerscore"),Bytes.toBytes(winnerscore));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winneroldrating"), Bytes.toBytes(winneroldrating));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winnernewrating"), Bytes.toBytes(winnernewrating));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("winnerpos"), Bytes.toBytes(winnerpos));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("loserid"), Bytes.toBytes(loserid));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("losername"), Bytes.toBytes(losername));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("loserscore"), Bytes.toBytes(loserscore));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("loseroldrating"), Bytes.toBytes(loseroldrating));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("losernewrating"), Bytes.toBytes(losernewrating));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("loserpos"), Bytes.toBytes(loserpos));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("round"), Bytes.toBytes(round));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("division"), Bytes.toBytes(division));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("date"), Bytes.toBytes(date));
-                p.add(Bytes.toBytes("game"), Bytes.toBytes("lexicon"), Bytes.toBytes(lexicon));
+                p.add(cfGame, Bytes.toBytes("gameid"), Bytes.toBytes(gameid));
+                p.add(cfGame, Bytes.toBytes("tourneyid"), Bytes.toBytes(tourneyid));
+                p.add(cfGame, Bytes.toBytes("tie"), Bytes.toBytes(tie));
+                p.add(cfUser, Bytes.toBytes("winnerid"), Bytes.toBytes(winnerid));
+                p.add(cfUser, Bytes.toBytes("winnername"), Bytes.toBytes(winnername));
+                p.add(cfUser, Bytes.toBytes("winnerscore"),Bytes.toBytes(winnerscore));
+                p.add(cfUser, Bytes.toBytes("winneroldrating"), Bytes.toBytes(winneroldrating));
+                p.add(cfUser, Bytes.toBytes("winnernewrating"), Bytes.toBytes(winnernewrating));
+                p.add(cfUser, Bytes.toBytes("winnerpos"), Bytes.toBytes(winnerpos));
+                p.add(cfUser, Bytes.toBytes("loserid"), Bytes.toBytes(loserid));
+                p.add(cfUser, Bytes.toBytes("losername"), Bytes.toBytes(losername));
+                p.add(cfUser, Bytes.toBytes("loserscore"), Bytes.toBytes(loserscore));
+                p.add(cfUser, Bytes.toBytes("loseroldrating"), Bytes.toBytes(loseroldrating));
+                p.add(cfUser, Bytes.toBytes("losernewrating"), Bytes.toBytes(losernewrating));
+                p.add(cfUser, Bytes.toBytes("loserpos"), Bytes.toBytes(loserpos));
+                p.add(cfGame, Bytes.toBytes("round"), Bytes.toBytes(round));
+                p.add(cfGame, Bytes.toBytes("division"), Bytes.toBytes(division));
+                p.add(cfGame, Bytes.toBytes("date"), Bytes.toBytes(date));
+                p.add(cfGame, Bytes.toBytes("lexicon"), Bytes.toBytes(lexicon));
 
                 HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
                 table.put(p);
@@ -142,13 +144,12 @@ public class HBaseScrabble {
     }
 
 
-
     public List<String> query1(String tourneyid, String winnername) throws IOException {
         //TO IMPLEMENT
         HConnection conn = HConnectionManager.createConnection(config);
         HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
-        Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(tourneyid));
-        Filter fWinnername = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(winnername));
+        Filter fTourneyid = new SingleColumnValueFilter(cfGame, Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(tourneyid));
+        Filter fWinnername = new SingleColumnValueFilter(cfUser, Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(winnername));
         FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
         filterList.addFilter(fTourneyid);
         filterList.addFilter(fWinnername);
@@ -158,7 +159,7 @@ public class HBaseScrabble {
         ArrayList<String> query1 = new ArrayList<>();
         for (Result r = rs.next(); r !=null; r = rs.next()) {
 
-            byte[] value = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
+            byte[] value = r.getValue(cfUser, Bytes.toBytes("loserid"));
             String valueStr = new String(value);
             query1.add(valueStr);
             System.out.println(valueStr);
@@ -188,18 +189,18 @@ public class HBaseScrabble {
         Set<String> set = new HashSet<>();
         int n = 0;
         for (Result r = scanner.next(); r !=null; r = scanner.next()) {
-            byte[] winner_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("winnerid"));
+            byte[] winner_aux = r.getValue(cfUser, Bytes.toBytes("winnerid"));
             String winnerId = new String(winner_aux);
-            byte[] loser_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("loserid"));
+            byte[] loser_aux = r.getValue(cfUser, Bytes.toBytes("loserid"));
             String loserId = new String(loser_aux);
-            byte[] tourneyid_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"));
+            byte[] tourneyid_aux = r.getValue(cfGame, Bytes.toBytes("tourneyid"));
             String tourneyid = new String(tourneyid_aux);
 
             if (Integer.parseInt(firsttourneyid)<=Integer.parseInt(tourneyid) && (Integer.parseInt(lasttourneyid)>=Integer.parseInt(tourneyid))) {
                 ids.add(winnerId);
                 ids.add(loserId);
                 n++;
-                System.out.println("####### --> "+n);
+                //System.out.println("####### --> "+n);
             }
 
         }
@@ -219,7 +220,7 @@ public class HBaseScrabble {
         //TO IMPLEMENT
         HConnection conn = HConnectionManager.createConnection(config);
         HTable table = new HTable(TableName.valueOf("ScrabbleGames"), conn);
-        Filter fTourneyid = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(tourneyid));
+        Filter fTourneyid = new SingleColumnValueFilter(cfGame, Bytes.toBytes("tourneyid"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(tourneyid));
         //Filter fTie = new SingleColumnValueFilter(Bytes.toBytes("game"), Bytes.toBytes("winnername"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(true));
         //FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
         //filterList.addFilter(fTourneyid);
@@ -229,8 +230,8 @@ public class HBaseScrabble {
         ResultScanner rs = table.getScanner(scan);
         ArrayList<String> query3 = new ArrayList<>();
         for (Result r = rs.next(); r !=null; r = rs.next()) {
-            byte[] gameid_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("gameid"));
-            byte[] tie_aux = r.getValue(Bytes.toBytes("game"), Bytes.toBytes("tie"));
+            byte[] gameid_aux = r.getValue(cfGame, Bytes.toBytes("gameid"));
+            byte[] tie_aux = r.getValue(cfGame, Bytes.toBytes("tie"));
             String gameid = new String(gameid_aux);
             Boolean tie = Bytes.toBoolean(tie_aux);
 
