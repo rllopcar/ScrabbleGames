@@ -180,8 +180,8 @@ public class HBaseScrabble {
 
         byte[] first_key = (firsttourneyid).getBytes();
 
-        //byte[] last_key = (lasttourneyid+"z").getBytes();
-        byte[] last_key = (lasttourneyid+".").getBytes();
+        byte[] last_key = (lasttourneyid+"z").getBytes();
+        //byte[] last_key = (lasttourneyid+".").getBytes();
 
         Scan scan = new Scan(first_key,last_key);
         ResultScanner scanner = table.getScanner(scan);
@@ -197,7 +197,7 @@ public class HBaseScrabble {
             byte[] tourneyid_aux = r.getValue(cfGame, Bytes.toBytes("tourneyid"));
             String tourneyid = new String(tourneyid_aux);
 
-            if (Integer.parseInt(firsttourneyid)<=Integer.parseInt(tourneyid) && (Integer.parseInt(lasttourneyid)>=Integer.parseInt(tourneyid))) {
+            if (Integer.parseInt(firsttourneyid)<=Integer.parseInt(tourneyid) && (Integer.parseInt(lasttourneyid)>Integer.parseInt(tourneyid))) {
                 ids.add(winnerId);
                 ids.add(loserId);
                 n++;

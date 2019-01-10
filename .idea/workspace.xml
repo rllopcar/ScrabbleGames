@@ -16,8 +16,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/HBaseScrabble.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="167" lean-forward="true" selection-start-line="167" selection-end-line="167" />
+            <state relative-caret-position="240">
+              <caret line="199" column="114" lean-forward="true" selection-start-line="199" selection-start-column="114" selection-end-line="199" selection-end-column="114" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -202,8 +202,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/HBaseScrabble.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="167" lean-forward="true" selection-start-line="167" selection-end-line="167" />
+        <state relative-caret-position="240">
+          <caret line="199" column="114" lean-forward="true" selection-start-line="199" selection-start-column="114" selection-end-line="199" selection-end-column="114" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
